@@ -137,8 +137,10 @@ class ColorPicker {
         temperatureBadge.className = 'badge';
         if (data.temperature === 'warm') {
             temperatureBadge.classList.add('bg-warning', 'text-dark');
-        } else {
+        } else if (data.temperature === 'cold') {
             temperatureBadge.classList.add('bg-info', 'text-dark');
+        } else if (data.temperature === 'neutral') {
+            temperatureBadge.classList.add('bg-secondary', 'text-light');
         }
         
         // Add visual feedback on canvas
@@ -252,8 +254,19 @@ function rgbToHsl(r, g, b) {
     return [h * 360, s * 100, l * 100];
 }
 
-function isWarmColor(hue) {
-    return hue >= 0 && hue <= 90;
+function determineColorTemperature(hue, saturation, lightness) {
+    // Check lightness first
+    if (lightness === 0) {
+        return 'cold';
+    } else if (lightness === 100) {
+        return 'warm';
+    } else if (saturation === 0) {
+        return 'neutral';
+    } else if ((hue >= 0 && hue <= 90) || (hue >= 270 && hue <= 359)) {
+        return 'warm';
+    } else {
+        return 'cold';
+    }
 }
 
 // Make ColorPicker available globally

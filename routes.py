@@ -8,7 +8,7 @@ from PIL import Image as PILImage
 from app import app, db
 from models import User, Image
 from replit_auth import require_login, make_replit_blueprint
-from utils import allowed_file, get_image_dimensions, convert_rgb_to_hsl, is_warm_color
+from utils import allowed_file, get_image_dimensions, convert_rgb_to_hsl, determine_color_temperature
 
 # Register Replit Auth blueprint
 app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
@@ -157,8 +157,8 @@ def get_pixel_color(image_id):
             # Convert to HSL
             hsl = convert_rgb_to_hsl(rgb[0], rgb[1], rgb[2])
             
-            # Determine if warm or cold
-            is_warm = is_warm_color(hsl[0])
+            # Determine color temperature
+            temperature = determine_color_temperature(hsl[0], hsl[1], hsl[2])
             
             return jsonify({
                 'rgb': rgb,
@@ -168,7 +168,7 @@ def get_pixel_color(image_id):
                     's': round(hsl[1]),
                     'l': round(hsl[2])
                 },
-                'temperature': 'warm' if is_warm else 'cold',
+                'temperature': temperature,
                 'coordinates': {'x': x, 'y': y}
             })
             

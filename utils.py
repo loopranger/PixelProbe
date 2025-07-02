@@ -50,11 +50,19 @@ def convert_rgb_to_hsl(r, g, b):
     
     return h, s, l
 
-def is_warm_color(hue):
-    """Determine if a color is warm based on HSL hue value"""
-    # Warm colors: 0-90 degrees (reds, oranges, yellows)
-    # Cold colors: 91+ degrees (greens, blues, purples)
-    return 0 <= hue <= 90
+def determine_color_temperature(hue, saturation, lightness):
+    """Determine if a color is warm, cold, or neutral based on HSL values"""
+    # Check lightness first
+    if lightness == 0:
+        return 'cold'
+    elif lightness == 100:
+        return 'warm'
+    elif saturation == 0:
+        return 'neutral'
+    elif (0 <= hue <= 90) or (270 <= hue <= 359):
+        return 'warm'
+    else:
+        return 'cold'
 
 def format_file_size(size_bytes):
     """Format file size in human readable format"""

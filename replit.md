@@ -100,6 +100,12 @@ Color Analyzer is a Flask-based web application that allows users to upload imag
 ```
 Changelog:
 - July 02, 2025. Initial setup
+- July 02, 2025. Updated color temperature analysis logic:
+  * Cold: lightness = 0
+  * Warm: lightness = 100  
+  * Neutral: saturation = 0
+  * Warm: hue 0-90 or 270-359 degrees
+  * Cold: all other hue values
 ```
 
 ## User Preferences
