@@ -106,6 +106,10 @@ Changelog:
   * Neutral: saturation = 0
   * Warm: hue 0-90 or 270-359 degrees
   * Cold: all other hue values
+- July 03, 2025. Fixed coordinate accuracy in color picker:
+  * Resolved coordinate mapping between canvas display and original image
+  * Added proper scaling calculation for accurate pixel selection
+  * Fixed crosshair positioning to match clicked coordinates
 ```
 
 ## User Preferences
