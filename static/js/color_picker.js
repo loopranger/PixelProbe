@@ -66,9 +66,29 @@ class ColorPicker {
         const canvasX = e.clientX - rect.left;
         const canvasY = e.clientY - rect.top;
         
-        // Convert canvas coordinates to original image coordinates
-        const x = Math.floor((canvasX / this.canvas.width) * this.image.width);
-        const y = Math.floor((canvasY / this.canvas.height) * this.image.height);
+        // Account for the actual canvas size vs displayed size
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        
+        // Get actual canvas coordinates
+        const actualCanvasX = canvasX * scaleX;
+        const actualCanvasY = canvasY * scaleY;
+        
+        // Convert to original image coordinates
+        const x = Math.floor((actualCanvasX / this.canvas.width) * this.image.width);
+        const y = Math.floor((actualCanvasY / this.canvas.height) * this.image.height);
+        
+        // Debug logging
+        console.log('Click debug:', {
+            clientClick: { x: e.clientX, y: e.clientY },
+            rect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+            canvasClick: { x: canvasX, y: canvasY },
+            scale: { x: scaleX, y: scaleY },
+            actualCanvas: { x: actualCanvasX, y: actualCanvasY },
+            canvasSize: { width: this.canvas.width, height: this.canvas.height },
+            imageSize: { width: this.image.width, height: this.image.height },
+            finalCoords: { x, y }
+        });
         
         // Ensure coordinates are within image bounds
         const imageWidth = this.image.width;
@@ -86,9 +106,17 @@ class ColorPicker {
         const canvasX = e.clientX - rect.left;
         const canvasY = e.clientY - rect.top;
         
-        // Convert canvas coordinates to original image coordinates
-        const x = Math.floor((canvasX / this.canvas.width) * this.image.width);
-        const y = Math.floor((canvasY / this.canvas.height) * this.image.height);
+        // Account for the actual canvas size vs displayed size
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        
+        // Get actual canvas coordinates
+        const actualCanvasX = canvasX * scaleX;
+        const actualCanvasY = canvasY * scaleY;
+        
+        // Convert to original image coordinates
+        const x = Math.floor((actualCanvasX / this.canvas.width) * this.image.width);
+        const y = Math.floor((actualCanvasY / this.canvas.height) * this.image.height);
         
         // Update tooltip or status if needed
         this.canvas.title = `Click to analyze pixel at (${x}, ${y})`;
