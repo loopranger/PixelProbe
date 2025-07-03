@@ -39,7 +39,7 @@
                         <strong>Free Account:</strong> Your images will be automatically deleted after 24 hours.
                         <a href="{{ url_for('upgrade') }}" class="btn btn-sm btn-warning ms-2">
                             <i data-feather="star" class="me-1"></i>
-                            Upgrade to Premium
+                            Upgrade to Premium (coming soon!)
                         </a>
                     </div>
                 {% endif %}
@@ -90,7 +90,7 @@
                     <div class="alert alert-danger">
                         <i data-feather="alert-circle" class="me-2"></i>
                         <strong>Storage Full:</strong> You have reached your limit of {{ current_user.max_images }} images.
-                        Please delete some images first or upgrade to Premium.
+                        Please delete some images first or upgrade to Premium (coming soon!).
                     </div>
                     
                     <div class="text-center">
@@ -101,7 +101,7 @@
                         {% if not current_user.is_premium %}
                             <a href="{{ url_for('upgrade') }}" class="btn btn-warning ms-2">
                                 <i data-feather="star" class="me-2"></i>
-                                Upgrade to Premium
+                                Upgrade to Premium (coming soon!)
                             </a>
                         {% endif %}
                     </div>
