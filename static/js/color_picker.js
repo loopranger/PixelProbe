@@ -61,8 +61,14 @@ class ColorPicker {
     
     handleClick(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left) / this.scale);
-        const y = Math.floor((e.clientY - rect.top) / this.scale);
+        
+        // Get click position relative to canvas
+        const canvasX = e.clientX - rect.left;
+        const canvasY = e.clientY - rect.top;
+        
+        // Convert canvas coordinates to original image coordinates
+        const x = Math.floor((canvasX / this.canvas.width) * this.image.width);
+        const y = Math.floor((canvasY / this.canvas.height) * this.image.height);
         
         // Ensure coordinates are within image bounds
         const imageWidth = this.image.width;
@@ -75,8 +81,14 @@ class ColorPicker {
     
     handleMouseMove(e) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left) / this.scale);
-        const y = Math.floor((e.clientY - rect.top) / this.scale);
+        
+        // Get mouse position relative to canvas
+        const canvasX = e.clientX - rect.left;
+        const canvasY = e.clientY - rect.top;
+        
+        // Convert canvas coordinates to original image coordinates
+        const x = Math.floor((canvasX / this.canvas.width) * this.image.width);
+        const y = Math.floor((canvasY / this.canvas.height) * this.image.height);
         
         // Update tooltip or status if needed
         this.canvas.title = `Click to analyze pixel at (${x}, ${y})`;
@@ -152,9 +164,9 @@ class ColorPicker {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         this.ctx.drawImage(this.image, 0, 0, this.canvas.width, this.canvas.height);
         
-        // Draw crosshair
-        const canvasX = x * this.scale;
-        const canvasY = y * this.scale;
+        // Convert original image coordinates to canvas coordinates
+        const canvasX = (x / this.image.width) * this.canvas.width;
+        const canvasY = (y / this.image.height) * this.canvas.height;
         
         this.ctx.strokeStyle = '#fff';
         this.ctx.lineWidth = 2;
