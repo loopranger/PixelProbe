@@ -137,9 +137,12 @@ def get_pixel_color(image_id):
         x = int(data['x'])
         y = int(data['y'])
         
-        # Open image and get pixel color
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-        with PILImage.open(file_path) as img:
+        # Check if image has blob data
+        if not image.image_data:
+            return jsonify({'error': 'Image data not available'}), 400
+        
+        # Open image from blob data and get pixel color
+        with PILImage.open(BytesIO(image.image_data)) as img:
             # Convert to RGB if necessary
             if img.mode != 'RGB':
                 img = img.convert('RGB')
