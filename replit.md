@@ -110,6 +110,12 @@ Changelog:
   * Resolved coordinate mapping between canvas display and original image
   * Added proper scaling calculation for accurate pixel selection
   * Fixed crosshair positioning to match clicked coordinates
+- July 03, 2025. Migrated from file-based to blob-based image storage:
+  * Added image_data column as LargeBinary to store images in database
+  * Updated upload route to store image data as blobs instead of files
+  * Modified file serving to stream images from database blobs
+  * Removed filesystem dependencies for image storage and cleanup
+  * Simplified cleanup operations to only handle database records
 ```
 
 ## User Preferences

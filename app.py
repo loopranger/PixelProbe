@@ -30,13 +30,9 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 
 # File upload configuration
 app.config['MAX_CONTENT_LENGTH'] = 15 * 1024 * 1024  # 15MB max file size
-app.config['UPLOAD_FOLDER'] = 'uploads'
 
 # Initialize the app with the extension
 db.init_app(app)
-
-# Create uploads directory if it doesn't exist
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Initialize scheduler for cleanup tasks
 scheduler = BackgroundScheduler()
@@ -46,7 +42,6 @@ def cleanup_expired_images():
     with app.app_context():
         from models import Image, User
         from datetime import datetime, timedelta
-        import os
         
         # Find expired images (24 hours old for free users)
         cutoff_time = datetime.utcnow() - timedelta(hours=24)
@@ -56,14 +51,9 @@ def cleanup_expired_images():
         ).all()
         
         for image in expired_images:
-            # Delete file from filesystem
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                logging.info(f"Deleted expired image file: {file_path}")
-            
-            # Delete database record
+            # Delete database record (image data is stored as blob, no file system cleanup needed)
             db.session.delete(image)
+            logging.info(f"Deleted expired image: {image.original_filename}")
         
         db.session.commit()
         logging.info(f"Cleaned up {len(expired_images)} expired images")

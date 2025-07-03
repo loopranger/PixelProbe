@@ -69,6 +69,7 @@ class Image(db.Model):
     width = db.Column(db.Integer, nullable=False)
     height = db.Column(db.Integer, nullable=False)
     user_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=False)
+    image_data = db.Column(db.LargeBinary, nullable=False)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

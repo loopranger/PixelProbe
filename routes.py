@@ -1,7 +1,8 @@
 import os
 import uuid
 from datetime import datetime
-from flask import render_template, request, redirect, url_for, flash, jsonify, send_from_directory
+from io import BytesIO
+from flask import render_template, request, redirect, url_for, flash, jsonify, send_from_directory, Response
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 from PIL import Image as PILImage
@@ -54,28 +55,25 @@ def upload():
         
         if file and allowed_file(file.filename):
             try:
-                # Generate unique filename
-                original_filename = secure_filename(file.filename)
+                # Read file data into memory
+                file_data = file.read()
+                file_size = len(file_data)
+                
+                # Generate unique filename identifier
+                original_filename = secure_filename(file.filename or "unknown.jpg")
                 filename = f"{uuid.uuid4().hex}_{original_filename}"
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 
-                # Save file
-                file.save(file_path)
-                
-                # Get image dimensions and validate
+                # Get image dimensions and validate using PIL from memory
                 try:
-                    with PILImage.open(file_path) as img:
+                    with PILImage.open(BytesIO(file_data)) as img:
                         width, height = img.size
-                        mime_type = f"image/{img.format.lower()}"
+                        format_str = img.format.lower() if img.format else "jpeg"
+                        mime_type = f"image/{format_str}"
                 except Exception as e:
-                    os.remove(file_path)
                     flash('Invalid image file', 'error')
                     return redirect(url_for('upload'))
                 
-                # Get file size
-                file_size = os.path.getsize(file_path)
-                
-                # Create database record
+                # Create database record with image data
                 image = Image(
                     filename=filename,
                     original_filename=original_filename,
@@ -83,7 +81,8 @@ def upload():
                     mime_type=mime_type,
                     width=width,
                     height=height,
-                    user_id=current_user.id
+                    user_id=current_user.id,
+                    image_data=file_data
                 )
                 
                 db.session.add(image)
@@ -93,9 +92,6 @@ def upload():
                 return redirect(url_for('profile'))
                 
             except Exception as e:
-                # Clean up file if database operation fails
-                if os.path.exists(file_path):
-                    os.remove(file_path)
                 flash(f'Error uploading image: {str(e)}', 'error')
                 return redirect(url_for('upload'))
         else:
@@ -187,12 +183,7 @@ def delete_image(image_id):
         return redirect(url_for('profile'))
     
     try:
-        # Delete file from filesystem
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], image.filename)
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        
-        # Delete from database
+        # Delete from database (image data is stored as blob, no file system cleanup needed)
         db.session.delete(image)
         db.session.commit()
         
@@ -205,7 +196,7 @@ def delete_image(image_id):
 @app.route('/uploads/<filename>')
 @require_login
 def uploaded_file(filename):
-    """Serve uploaded files"""
+    """Serve uploaded files from database blob"""
     # Additional security check - ensure user owns the image
     image = Image.query.filter_by(filename=filename).first_or_404()
     
@@ -215,7 +206,15 @@ def uploaded_file(filename):
     if image.is_expired:
         return "Image has expired", 404
     
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+    # Create response with image data from database
+    return Response(
+        image.image_data,
+        mimetype=image.mime_type,
+        headers={
+            'Content-Disposition': f'inline; filename="{image.original_filename}"',
+            'Cache-Control': 'max-age=3600'  # Cache for 1 hour
+        }
+    )
 
 @app.route('/upgrade')
 @require_login
