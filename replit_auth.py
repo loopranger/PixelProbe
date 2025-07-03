@@ -151,6 +151,10 @@ def require_login(f):
             session["next_url"] = get_next_navigation_url(request)
             return redirect(url_for('replit_auth.login'))
 
+        if replit.token is None:
+            session["next_url"] = get_next_navigation_url(request)
+            return redirect(url_for('replit_auth.login'))
+            
         expires_in = replit.token.get('expires_in', 0)
         if expires_in < 0:
             issuer_url = os.environ.get('ISSUER_URL', "https://replit.com/oidc")

@@ -28,36 +28,6 @@
     </div>
     
     <div class="col-lg-4">
-        <!-- Image Info -->
-        <div class="card mb-4">
-            <div class="card-header">
-                <h6 class="card-title mb-0">
-                    <i data-feather="info" class="me-2"></i>
-                    Image Information
-                </h6>
-            </div>
-            <div class="card-body">
-                <div class="row mb-2">
-                    <div class="col-6"><strong>Dimensions:</strong></div>
-                    <div class="col-6">{{ image.width }}x{{ image.height }}</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-6"><strong>File Size:</strong></div>
-                    <div class="col-6">{{ image.file_size_mb }} MB</div>
-                </div>
-                <div class="row mb-2">
-                    <div class="col-6"><strong>Uploaded:</strong></div>
-                    <div class="col-6">{{ image.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
-                </div>
-                {% if not current_user.is_premium and image.expires_at %}
-                    <div class="row mb-2">
-                        <div class="col-6"><strong>Expires:</strong></div>
-                        <div class="col-6 text-warning">{{ image.expires_at.strftime('%Y-%m-%d %H:%M') }}</div>
-                    </div>
-                {% endif %}
-            </div>
-        </div>
-        
         <!-- Color Analysis Panel -->
         <div class="card mb-4">
             <div class="card-header">
@@ -128,6 +98,36 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Image Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">
+                    <i data-feather="info" class="me-2"></i>
+                    Image Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-6"><strong>Dimensions:</strong></div>
+                    <div class="col-6">{{ image.width }}x{{ image.height }}</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-6"><strong>File Size:</strong></div>
+                    <div class="col-6">{{ image.file_size_mb }} MB</div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-6"><strong>Uploaded:</strong></div>
+                    <div class="col-6">{{ image.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                </div>
+                {% if not current_user.is_premium and image.expires_at %}
+                    <div class="row mb-2">
+                        <div class="col-6"><strong>Expires:</strong></div>
+                        <div class="col-6 text-warning">{{ image.expires_at.strftime('%Y-%m-%d %H:%M') }}</div>
+                    </div>
+                {% endif %}
             </div>
         </div>
         
