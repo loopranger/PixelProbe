@@ -187,33 +187,20 @@ def get_pixel_color(image_id):
             # Use stored display dimensions from database
             display_width, display_height = image.width, image.height
             
-            # Debug logging for coordinate transformation
-            print(f"DEBUG: Clicked coordinates: ({x}, {y})")
-            print(f"DEBUG: Display dimensions: {display_width}x{display_height}")
-            print(f"DEBUG: Original dimensions: {original_width}x{original_height}")
-            print(f"DEBUG: EXIF orientation: {orientation}")
-            
             # Transform coordinates based on orientation
             if orientation == 6:  # 90 degree clockwise rotation
                 # For EXIF orientation 6: image is rotated 90° clockwise
-                # Original image data: 5712x4284 (width x height)
-                # Display shows: 4284x5712 (rotated 90° clockwise)
-                # When user clicks (x,y) on display, we need to find corresponding pixel in original
-                # Correct transformation for 90° clockwise: 
-                # display(x,y) -> original(original_height - 1 - y, x)
-                actual_x = original_height - 1 - y
+                # Frontend coordinates are in display space, need to map to original image space
+                actual_x = display_height - 1 - y
                 actual_y = x
-                print(f"DEBUG: Orientation 6 transform: ({x}, {y}) -> ({actual_x}, {actual_y})")
             elif orientation == 8:  # 90 degree counter-clockwise rotation
                 # For EXIF orientation 8: image is rotated 90° counter-clockwise
                 actual_x = y
-                actual_y = original_width - 1 - x
-                print(f"DEBUG: Orientation 8 transform: ({x}, {y}) -> ({actual_x}, {actual_y})")
+                actual_y = display_width - 1 - x
             else:
                 # No rotation needed
                 actual_x = x
                 actual_y = y
-                print(f"DEBUG: No rotation: ({x}, {y}) -> ({actual_x}, {actual_y})")
             
             # Validate coordinates are within display bounds
             if x < 0 or x >= display_width or y < 0 or y >= display_height:
