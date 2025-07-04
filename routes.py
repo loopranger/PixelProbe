@@ -157,6 +157,9 @@ def get_pixel_color(image_id):
         x = int(data['x'])
         y = int(data['y'])
         
+        # Debug logging
+        print(f"Received coordinates: x={x}, y={y}")
+        
         # Check if image has blob data
         if not image.image_data:
             return jsonify({'error': 'Image data not available'}), 400
@@ -182,6 +185,10 @@ def get_pixel_color(image_id):
             # Get original image dimensions
             original_width, original_height = img.size
             
+            # Debug logging
+            print(f"Original image size: {original_width}x{original_height}")
+            print(f"EXIF orientation: {orientation}")
+            
             # Transform coordinates based on orientation
             if orientation == 6:  # 90 degree clockwise rotation
                 # Frontend sees image as rotated 90 degrees clockwise
@@ -189,17 +196,20 @@ def get_pixel_color(image_id):
                 actual_x = y
                 actual_y = original_width - 1 - x
                 display_width, display_height = original_height, original_width
+                print(f"Rotation 6: ({x}, {y}) -> ({actual_x}, {actual_y})")
             elif orientation == 8:  # 90 degree counter-clockwise rotation
                 # Frontend sees image as rotated 90 degrees counter-clockwise
                 # Transform coordinates: (x, y) -> (original_height - 1 - y, x)
                 actual_x = original_height - 1 - y
                 actual_y = x
                 display_width, display_height = original_height, original_width
+                print(f"Rotation 8: ({x}, {y}) -> ({actual_x}, {actual_y})")
             else:
                 # No rotation needed
                 actual_x = x
                 actual_y = y
                 display_width, display_height = original_width, original_height
+                print(f"No rotation: ({x}, {y}) -> ({actual_x}, {actual_y})")
             
             # Validate coordinates are within display bounds
             if x < 0 or x >= display_width or y < 0 or y >= display_height:
