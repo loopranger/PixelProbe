@@ -222,6 +222,13 @@ def get_pixel_color(image_id):
             
             # Validate transformed coordinates are within actual image bounds
             if actual_x < 0 or actual_x >= original_width or actual_y < 0 or actual_y >= original_height:
+                print(f"DEBUG: Coordinate validation failed!")
+                print(f"DEBUG: Transformed coordinates: ({actual_x}, {actual_y})")
+                print(f"DEBUG: Original image bounds: {original_width}x{original_height}")
+                print(f"DEBUG: actual_x < 0: {actual_x < 0}")
+                print(f"DEBUG: actual_x >= {original_width}: {actual_x >= original_width}")
+                print(f"DEBUG: actual_y < 0: {actual_y < 0}")
+                print(f"DEBUG: actual_y >= {original_height}: {actual_y >= original_height}")
                 return jsonify({
                     'error': f'Transformed coordinates ({actual_x}, {actual_y}) are outside actual image bounds ({original_width}x{original_height})'
                 }), 400
