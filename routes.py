@@ -195,15 +195,18 @@ def get_pixel_color(image_id):
             
             # Transform coordinates based on orientation
             if orientation == 6:  # 90 degree clockwise rotation
-                # For EXIF orientation 6: image is rotated 90° clockwise
-                # Frontend coordinates are in display space, need to map to original image space
-                actual_x = display_height - 1 - y
-                actual_y = x
+                # For EXIF orientation 6: original image is rotated 90° clockwise to display
+                # Display coordinates (x, y) in display space (4284x5712)
+                # Need to map back to original image space (5712x4284)
+                # Inverse transformation: (x, y) -> (y, original_width - 1 - x)
+                actual_x = y
+                actual_y = original_width - 1 - x
                 print(f"DEBUG: Rotation 6 transform: ({x}, {y}) -> ({actual_x}, {actual_y})")
             elif orientation == 8:  # 90 degree counter-clockwise rotation
-                # For EXIF orientation 8: image is rotated 90° counter-clockwise
-                actual_x = y
-                actual_y = display_width - 1 - x
+                # For EXIF orientation 8: original image is rotated 90° counter-clockwise to display
+                # Inverse transformation: (x, y) -> (original_height - 1 - y, x)
+                actual_x = original_height - 1 - y
+                actual_y = x
                 print(f"DEBUG: Rotation 8 transform: ({x}, {y}) -> ({actual_x}, {actual_y})")
             else:
                 # No rotation needed
