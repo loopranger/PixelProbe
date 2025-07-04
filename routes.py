@@ -196,17 +196,18 @@ def get_pixel_color(image_id):
             # Transform coordinates based on orientation
             if orientation == 6:  # 90 degree clockwise rotation
                 # For EXIF orientation 6: image is rotated 90° clockwise
-                # Original image: 4032x3024 (width x height)
-                # Display shows: 3024x4032 (rotated 90° clockwise)
+                # Original image data: 5712x4284 (width x height)
+                # Display shows: 4284x5712 (rotated 90° clockwise)
                 # When user clicks (x,y) on display, we need to find corresponding pixel in original
-                # Transformation: display coords -> original coords
-                actual_x = y
-                actual_y = original_width - 1 - x
+                # Correct transformation for 90° clockwise: 
+                # display(x,y) -> original(original_height - 1 - y, x)
+                actual_x = original_height - 1 - y
+                actual_y = x
                 print(f"DEBUG: Orientation 6 transform: ({x}, {y}) -> ({actual_x}, {actual_y})")
             elif orientation == 8:  # 90 degree counter-clockwise rotation
                 # For EXIF orientation 8: image is rotated 90° counter-clockwise
-                actual_x = original_height - 1 - y
-                actual_y = x
+                actual_x = y
+                actual_y = original_width - 1 - x
                 print(f"DEBUG: Orientation 8 transform: ({x}, {y}) -> ({actual_x}, {actual_y})")
             else:
                 # No rotation needed
