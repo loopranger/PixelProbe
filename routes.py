@@ -147,6 +147,15 @@ def get_pixel_color(image_id):
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
+            # Get image dimensions for validation
+            img_width, img_height = img.size
+            
+            # Validate coordinates are within image bounds
+            if x < 0 or x >= img_width or y < 0 or y >= img_height:
+                return jsonify({
+                    'error': f'Coordinates ({x}, {y}) are outside image bounds ({img_width}x{img_height})'
+                }), 400
+            
             # Get pixel color
             rgb = img.getpixel((x, y))
             

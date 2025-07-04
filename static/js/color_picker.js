@@ -78,7 +78,16 @@ class ColorPicker {
         const x = Math.floor((actualCanvasX / this.canvas.width) * this.image.width);
         const y = Math.floor((actualCanvasY / this.canvas.height) * this.image.height);
         
-
+        console.log('Click coordinates:', {
+            clickX: canvasX,
+            clickY: canvasY,
+            actualCanvasX: actualCanvasX,
+            actualCanvasY: actualCanvasY,
+            canvasSize: { width: this.canvas.width, height: this.canvas.height },
+            imageSize: { width: this.image.width, height: this.image.height },
+            calculatedX: x,
+            calculatedY: y
+        });
         
         // Ensure coordinates are within image bounds
         const imageWidth = this.image.width;
@@ -86,6 +95,9 @@ class ColorPicker {
         
         if (x >= 0 && x < imageWidth && y >= 0 && y < imageHeight) {
             this.analyzePixel(x, y);
+        } else {
+            console.error('Coordinates out of bounds:', { x, y, imageWidth, imageHeight });
+            this.showError(`Coordinates (${x}, ${y}) are outside image bounds (${imageWidth}x${imageHeight})`);
         }
     }
     
