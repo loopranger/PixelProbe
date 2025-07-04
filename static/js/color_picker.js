@@ -78,16 +78,8 @@ class ColorPicker {
         const x = Math.floor((actualCanvasX / this.canvas.width) * this.image.width);
         const y = Math.floor((actualCanvasY / this.canvas.height) * this.image.height);
         
-        console.log('Click coordinates:', {
-            clickX: canvasX,
-            clickY: canvasY,
-            actualCanvasX: actualCanvasX,
-            actualCanvasY: actualCanvasY,
-            canvasSize: { width: this.canvas.width, height: this.canvas.height },
-            imageSize: { width: this.image.width, height: this.image.height },
-            calculatedX: x,
-            calculatedY: y
-        });
+        // Debug logging (can be removed in production)
+        // console.log('Click coordinates:', { calculatedX: x, calculatedY: y, imageSize: { width: this.image.width, height: this.image.height } });
         
         // Ensure coordinates are within image bounds
         const imageWidth = this.image.width;

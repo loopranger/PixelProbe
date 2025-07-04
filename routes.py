@@ -66,7 +66,27 @@ def upload():
                 # Get image dimensions and validate using PIL from memory
                 try:
                     with PILImage.open(BytesIO(file_data)) as img:
-                        width, height = img.size
+                        # Handle EXIF rotation
+                        from PIL import ExifTags
+                        
+                        # Get original dimensions
+                        original_width, original_height = img.size
+                        
+                        # Check for EXIF orientation
+                        orientation = 1
+                        try:
+                            exif = img.getexif()
+                            if exif is not None:
+                                orientation = exif.get(ExifTags.Base.Orientation.value, 1)
+                        except:
+                            pass
+                        
+                        # Adjust dimensions based on orientation
+                        if orientation in [6, 8]:  # 90 or 270 degree rotation
+                            width, height = original_height, original_width
+                        else:
+                            width, height = original_width, original_height
+                            
                         format_str = img.format.lower() if img.format else "jpeg"
                         mime_type = f"image/{format_str}"
                 except Exception as e:
@@ -147,17 +167,54 @@ def get_pixel_color(image_id):
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             
-            # Get image dimensions for validation
-            img_width, img_height = img.size
+            # Handle EXIF rotation to match frontend display
+            from PIL import ExifTags
             
-            # Validate coordinates are within image bounds
-            if x < 0 or x >= img_width or y < 0 or y >= img_height:
+            # Get EXIF orientation
+            orientation = 1
+            try:
+                exif = img.getexif()
+                if exif is not None:
+                    orientation = exif.get(ExifTags.Base.Orientation.value, 1)
+            except:
+                pass
+            
+            # Get original image dimensions
+            original_width, original_height = img.size
+            
+            # Transform coordinates based on orientation
+            if orientation == 6:  # 90 degree clockwise rotation
+                # Frontend sees image as rotated 90 degrees clockwise
+                # Transform coordinates: (x, y) -> (y, original_width - 1 - x)
+                actual_x = y
+                actual_y = original_width - 1 - x
+                display_width, display_height = original_height, original_width
+            elif orientation == 8:  # 90 degree counter-clockwise rotation
+                # Frontend sees image as rotated 90 degrees counter-clockwise
+                # Transform coordinates: (x, y) -> (original_height - 1 - y, x)
+                actual_x = original_height - 1 - y
+                actual_y = x
+                display_width, display_height = original_height, original_width
+            else:
+                # No rotation needed
+                actual_x = x
+                actual_y = y
+                display_width, display_height = original_width, original_height
+            
+            # Validate coordinates are within display bounds
+            if x < 0 or x >= display_width or y < 0 or y >= display_height:
                 return jsonify({
-                    'error': f'Coordinates ({x}, {y}) are outside image bounds ({img_width}x{img_height})'
+                    'error': f'Coordinates ({x}, {y}) are outside image bounds ({display_width}x{display_height})'
                 }), 400
             
-            # Get pixel color
-            rgb = img.getpixel((x, y))
+            # Validate transformed coordinates are within actual image bounds
+            if actual_x < 0 or actual_x >= original_width or actual_y < 0 or actual_y >= original_height:
+                return jsonify({
+                    'error': f'Transformed coordinates ({actual_x}, {actual_y}) are outside actual image bounds ({original_width}x{original_height})'
+                }), 400
+            
+            # Get pixel color using transformed coordinates
+            rgb = img.getpixel((actual_x, actual_y))
             
             # Convert to hex
             hex_color = f"#{rgb[0]:02x}{rgb[1]:02x}{rgb[2]:02x}"
