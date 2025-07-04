@@ -185,8 +185,12 @@ def get_pixel_color(image_id):
             # Get original image dimensions
             original_width, original_height = img.size
             
+            # Use stored display dimensions from database
+            display_width, display_height = image.width, image.height
+            
             # Debug logging
             print(f"Original image size: {original_width}x{original_height}")
+            print(f"Display dimensions: {display_width}x{display_height}")
             print(f"EXIF orientation: {orientation}")
             
             # Transform coordinates based on orientation
@@ -196,7 +200,6 @@ def get_pixel_color(image_id):
                 # Transform coordinates: (x, y) -> (original_height - 1 - y, x)
                 actual_x = original_height - 1 - y
                 actual_y = x
-                display_width, display_height = original_height, original_width
                 print(f"Rotation 6: ({x}, {y}) -> ({actual_x}, {actual_y})")
             elif orientation == 8:  # 90 degree counter-clockwise rotation
                 # Frontend sees image as rotated 90 degrees counter-clockwise
@@ -204,18 +207,15 @@ def get_pixel_color(image_id):
                 # Transform coordinates: (x, y) -> (y, original_width - 1 - x)
                 actual_x = y
                 actual_y = original_width - 1 - x
-                display_width, display_height = original_height, original_width
                 print(f"Rotation 8: ({x}, {y}) -> ({actual_x}, {actual_y})")
             else:
                 # No rotation needed
                 actual_x = x
                 actual_y = y
-                display_width, display_height = original_width, original_height
                 print(f"No rotation: ({x}, {y}) -> ({actual_x}, {actual_y})")
             
             # Debug: check display bounds
             print(f"Display bounds: {display_width}x{display_height}")
-            print(f"Database stored dimensions: {image.width}x{image.height}")
             
             # Validate coordinates are within display bounds
             if x < 0 or x >= display_width or y < 0 or y >= display_height:
