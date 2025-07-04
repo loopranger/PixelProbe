@@ -116,6 +116,11 @@ Changelog:
   * Modified file serving to stream images from database blobs
   * Removed filesystem dependencies for image storage and cleanup
   * Simplified cleanup operations to only handle database records
+- July 04, 2025. Fixed EXIF rotation coordinate transformation bug:
+  * Resolved coordinate mapping issues for iPhone portrait photos (orientation 6)
+  * Fixed dimension storage to properly handle rotated image dimensions
+  * Corrected coordinate transformation formula for EXIF-rotated images
+  * Pixel color analysis now works correctly in all areas of portrait images
 ```
 
 ## User Preferences

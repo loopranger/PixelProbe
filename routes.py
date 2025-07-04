@@ -157,8 +157,7 @@ def get_pixel_color(image_id):
         x = int(data['x'])
         y = int(data['y'])
         
-        # Debug logging
-        print(f"Received coordinates: x={x}, y={y}")
+
         
         # Check if image has blob data
         if not image.image_data:
@@ -188,34 +187,20 @@ def get_pixel_color(image_id):
             # Use stored display dimensions from database
             display_width, display_height = image.width, image.height
             
-            # Debug logging
-            print(f"Original image size: {original_width}x{original_height}")
-            print(f"Display dimensions: {display_width}x{display_height}")
-            print(f"EXIF orientation: {orientation}")
-            
             # Transform coordinates based on orientation
             if orientation == 6:  # 90 degree clockwise rotation
                 # For EXIF orientation 6: image is rotated 90° clockwise
-                # Frontend coordinates are in display space (3024x4032)
-                # Need to map to original image space (4032x3024)
-                # Correct transformation: (x, y) -> (display_height - 1 - y, x)
+                # Frontend coordinates are in display space, need to map to original image space
                 actual_x = display_height - 1 - y
                 actual_y = x
-                print(f"Rotation 6: ({x}, {y}) -> ({actual_x}, {actual_y})")
             elif orientation == 8:  # 90 degree counter-clockwise rotation
                 # For EXIF orientation 8: image is rotated 90° counter-clockwise
-                # Correct transformation: (x, y) -> (y, display_width - 1 - x)
                 actual_x = y
                 actual_y = display_width - 1 - x
-                print(f"Rotation 8: ({x}, {y}) -> ({actual_x}, {actual_y})")
             else:
                 # No rotation needed
                 actual_x = x
                 actual_y = y
-                print(f"No rotation: ({x}, {y}) -> ({actual_x}, {actual_y})")
-            
-            # Debug: check display bounds
-            print(f"Display bounds: {display_width}x{display_height}")
             
             # Validate coordinates are within display bounds
             if x < 0 or x >= display_width or y < 0 or y >= display_height:
