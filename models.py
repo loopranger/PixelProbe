@@ -14,13 +14,6 @@ class User(UserMixin, db.Model):
     profile_image_url = db.Column(db.String, nullable=True)
     is_premium = db.Column(db.Boolean, default=False, nullable=False)
     
-    # Subscription fields
-    subscription_id = db.Column(db.String(255), nullable=True)
-    subscription_status = db.Column(db.String(50), nullable=True)  # ACTIVE, CANCELLED, PAYMENT_FAILED, etc.
-    subscription_activated_at = db.Column(db.DateTime, nullable=True)
-    subscription_cancelled_at = db.Column(db.DateTime, nullable=True)
-    payment_failed_at = db.Column(db.DateTime, nullable=True)
-    
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

@@ -68,8 +68,6 @@ Color Analyzer is a Flask-based web application that allows users to upload imag
 - APScheduler for background tasks
 - JWT for token handling
 - Werkzeug for security utilities
-- Stripe for payment processing
-- Requests for HTTP client functionality
 
 ### Frontend Libraries
 - Bootstrap CSS framework with dark theme
@@ -79,12 +77,6 @@ Color Analyzer is a Flask-based web application that allows users to upload imag
 ### Authentication
 - Replit Auth OAuth provider integration
 - Flask-Dance for OAuth flow management
-
-### Payment Processing
-- Stripe API integration for subscription management
-- Stripe-hosted checkout pages for secure payment processing
-- Webhook handling for subscription lifecycle events
-- Monthly recurring billing at €3.99/month
 
 ## Deployment Strategy
 
@@ -129,14 +121,6 @@ Changelog:
   * Fixed dimension storage to properly handle rotated image dimensions
   * Corrected coordinate transformation formula for EXIF-rotated images
   * Pixel color analysis now works correctly in all areas of portrait images
-- July 05, 2025. Implemented Stripe payment processing for Premium subscriptions:
-  * Added Stripe integration with recurring €3.99/month subscriptions
-  * Created payment routes for checkout, success, cancellation, and webhooks
-  * Updated user model with subscription tracking fields
-  * Added subscription management in user profile (view status, cancel subscription)
-  * Updated all templates to remove "coming soon" and enable payment flow
-  * Integrated Stripe-hosted checkout for secure payment processing
-  * Added webhook handling for subscription lifecycle events
 ```
 
 ## User Preferences
