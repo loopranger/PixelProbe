@@ -2,7 +2,7 @@ import os
 import uuid
 from datetime import datetime
 from io import BytesIO
-from flask import render_template, request, redirect, url_for, flash, jsonify, send_from_directory, Response
+from flask import render_template, request, redirect, url_for, flash, jsonify, send_from_directory, Response, current_app
 from flask_login import current_user
 from werkzeug.utils import secure_filename
 from PIL import Image as PILImage
@@ -309,8 +309,157 @@ def uploaded_file(filename):
 @app.route('/upgrade')
 @require_login
 def upgrade():
-    """Upgrade to premium page (placeholder for future payment integration)"""
+    """Upgrade to premium page with PayPal integration"""
+    if current_user.is_premium:
+        flash('You already have a premium subscription!', 'info')
+        return redirect(url_for('profile'))
+    
     return render_template('upgrade.html')
+
+
+@app.route('/create-subscription', methods=['POST'])
+@require_login
+def create_subscription():
+    """Create Stripe checkout session"""
+    if current_user.is_premium:
+        flash('You already have a premium subscription!', 'info')
+        return redirect(url_for('profile'))
+    
+    try:
+        from stripe_integration import StripeClient
+        stripe_client = StripeClient()
+        
+        # Create return and cancel URLs
+        success_url = url_for('subscription_success', _external=True) + '?session_id={CHECKOUT_SESSION_ID}'
+        cancel_url = url_for('subscription_cancel', _external=True)
+        
+        # Create checkout session
+        session = stripe_client.create_checkout_session(
+            user_id=current_user.id,
+            success_url=success_url,
+            cancel_url=cancel_url
+        )
+        
+        # Store session ID temporarily
+        current_user.subscription_id = session.id
+        current_user.subscription_status = 'CHECKOUT_PENDING'
+        db.session.commit()
+        
+        return redirect(session.url)
+            
+    except Exception as e:
+        current_app.logger.error(f"Error creating subscription: {str(e)}")
+        flash('Payment system is temporarily unavailable. Please try again later.', 'error')
+        return redirect(url_for('upgrade'))
+
+
+@app.route('/subscription-success')
+@require_login
+def subscription_success():
+    """Handle successful subscription approval"""
+    session_id = request.args.get('session_id')
+    
+    if not session_id:
+        flash('Invalid subscription. Please try again.', 'error')
+        return redirect(url_for('upgrade'))
+    
+    try:
+        import stripe
+        stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+        
+        # Get checkout session details
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.subscription:
+            # Update user premium status
+            current_user.is_premium = True
+            current_user.subscription_id = session.subscription
+            current_user.subscription_status = 'ACTIVE'
+            current_user.subscription_activated_at = datetime.utcnow()
+            db.session.commit()
+            
+            flash('Welcome to Premium! Your subscription is now active.', 'success')
+            return redirect(url_for('profile'))
+        else:
+            flash('Subscription activation is still pending. Please check back shortly.', 'info')
+            return redirect(url_for('profile'))
+            
+    except Exception as e:
+        current_app.logger.error(f"Error processing subscription success: {str(e)}")
+        flash('There was an issue activating your subscription. Please contact support.', 'error')
+        return redirect(url_for('profile'))
+
+
+@app.route('/subscription-cancel')
+@require_login
+def subscription_cancel():
+    """Handle subscription cancellation"""
+    flash('Subscription cancelled. You can try upgrading again anytime.', 'info')
+    return redirect(url_for('upgrade'))
+
+
+@app.route('/cancel-subscription', methods=['POST'])
+@require_login
+def cancel_subscription():
+    """Cancel user's subscription"""
+    if not current_user.is_premium or not current_user.subscription_id:
+        flash('You do not have an active subscription.', 'error')
+        return redirect(url_for('profile'))
+    
+    try:
+        from stripe_integration import StripeClient
+        stripe_client = StripeClient()
+        
+        # Cancel subscription
+        subscription = stripe_client.cancel_subscription(current_user.subscription_id)
+        
+        if subscription:
+            # Update user status - they keep premium until period ends
+            current_user.subscription_status = 'CANCELLED'
+            current_user.subscription_cancelled_at = datetime.utcnow()
+            db.session.commit()
+            
+            flash('Your subscription has been cancelled and will not renew. You can continue using Premium features until the end of your current billing period.', 'success')
+        else:
+            flash('Failed to cancel subscription. Please try again.', 'error')
+            
+    except Exception as e:
+        current_app.logger.error(f"Error cancelling subscription: {str(e)}")
+        flash('Failed to cancel subscription. Please contact support.', 'error')
+    
+    return redirect(url_for('profile'))
+
+
+@app.route('/stripe-webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    try:
+        from stripe_integration import StripeClient, handle_checkout_completed, handle_subscription_deleted, handle_invoice_payment_failed
+        
+        # Verify webhook signature
+        stripe_client = StripeClient()
+        sig_header = request.headers.get('Stripe-Signature')
+        
+        if not stripe_client.verify_webhook_signature(request.data, sig_header):
+            return 'Invalid signature', 400
+        
+        # Parse webhook data
+        webhook_data = request.get_json()
+        event_type = webhook_data.get('type')
+        
+        # Handle different event types
+        if event_type == 'checkout.session.completed':
+            handle_checkout_completed(webhook_data)
+        elif event_type == 'customer.subscription.deleted':
+            handle_subscription_deleted(webhook_data)
+        elif event_type == 'invoice.payment_failed':
+            handle_invoice_payment_failed(webhook_data)
+        
+        return 'OK', 200
+        
+    except Exception as e:
+        current_app.logger.error(f"Error handling Stripe webhook: {str(e)}")
+        return 'Error', 500
 
 
 @app.errorhandler(404)

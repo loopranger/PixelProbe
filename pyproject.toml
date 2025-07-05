@@ -17,4 +17,6 @@ dependencies = [
     "pillow>=11.3.0",
     "apscheduler>=3.11.0",
     "sqlalchemy>=2.0.41",
+    "requests>=2.32.4",
+    "stripe>=12.3.0",
 ]

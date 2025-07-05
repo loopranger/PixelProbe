@@ -53,8 +53,35 @@
                             {% if not current_user.is_premium %}
                                 <a href="{{ url_for('upgrade') }}" class="btn btn-warning btn-sm">
                                     <i data-feather="star" class="me-1"></i>
-                                    Upgrade to Premium (coming soon!)
+                                    Upgrade to Premium
                                 </a>
+                            {% else %}
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-warning btn-sm dropdown-toggle" type="button" id="subscriptionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i data-feather="settings" class="me-1"></i>
+                                        Manage Subscription
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="subscriptionDropdown">
+                                        <li><h6 class="dropdown-header">Subscription Status</h6></li>
+                                        <li><span class="dropdown-item-text">
+                                            Status: <span class="badge bg-success">{{ current_user.subscription_status or 'Active' }}</span>
+                                        </span></li>
+                                        {% if current_user.subscription_activated_at %}
+                                        <li><span class="dropdown-item-text">
+                                            Active since: {{ current_user.subscription_activated_at.strftime('%B %d, %Y') }}
+                                        </span></li>
+                                        {% endif %}
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li>
+                                            <form action="{{ url_for('cancel_subscription') }}" method="POST" class="d-inline">
+                                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Are you sure you want to cancel your subscription? You will lose premium features at the end of your current billing period.')">
+                                                    <i data-feather="x-circle" class="me-2"></i>
+                                                    Cancel Subscription
+                                                </button>
+                                            </form>
+                                        </li>
+                                    </ul>
+                                </div>
                             {% endif %}
                         </div>
                     </div>
