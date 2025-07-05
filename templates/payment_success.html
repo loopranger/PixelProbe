@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Payment Successful - Color Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="text-success display-1" data-feather="check-circle"></i>
+                    </div>
+                    
+                    <h2 class="text-success mb-3">Payment Successful!</h2>
+                    <p class="lead text-muted mb-4">
+                        Welcome to Color Analyzer Premium! Your subscription is now active.
+                    </p>
+                    
+                    <div class="mb-4">
+                        <h5 class="text-white">Premium Benefits Activated:</h5>
+                        <ul class="list-unstyled text-muted">
+                            <li><i class="text-success" data-feather="check"></i> 50 images storage limit</li>
+                            <li><i class="text-success" data-feather="check"></i> Unlimited image retention</li>
+                            <li><i class="text-success" data-feather="check"></i> Priority support</li>
+                            <li><i class="text-success" data-feather="check"></i> Future premium features</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                        <a href="{{ url_for('profile') }}" class="btn btn-primary btn-lg">
+                            <i data-feather="image"></i>
+                            View Your Images
+                        </a>
+                        <a href="{{ url_for('upload') }}" class="btn btn-outline-primary btn-lg">
+                            <i data-feather="upload"></i>
+                            Upload New Image
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

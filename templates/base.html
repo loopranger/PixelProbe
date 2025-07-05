@@ -42,14 +42,12 @@
                                 Upload
                             </a>
                         </li>
-                        {% if not current_user.is_premium %}
                         <li class="nav-item">
-                            <a class="nav-link text-warning" href="{{ url_for('upgrade') }}">
+                            <a class="nav-link {% if not current_user.has_active_subscription() %}text-warning{% endif %}" href="{{ url_for('upgrade') }}">
                                 <i data-feather="star" class="me-1"></i>
-                                Upgrade
+                                {% if current_user.has_active_subscription() %}Premium{% else %}Upgrade{% endif %}
                             </a>
                         </li>
-                        {% endif %}
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('replit_auth.logout') }}">
                                 <i data-feather="log-out" class="me-1"></i>

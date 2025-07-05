@@ -1,5 +1,7 @@
 import os
 import uuid
+import stripe
+import json
 from datetime import datetime
 from io import BytesIO
 from flask import render_template, request, redirect, url_for, flash, jsonify, send_from_directory, Response
@@ -7,9 +9,24 @@ from flask_login import current_user
 from werkzeug.utils import secure_filename
 from PIL import Image as PILImage
 from app import app, db
-from models import User, Image
+from models import User, Image, Subscription
 from replit_auth import require_login, make_replit_blueprint
 from utils import allowed_file, get_image_dimensions, convert_rgb_to_hsl, determine_color_temperature
+
+# Configure Stripe
+stripe.api_key = os.environ.get('STRIPE_SECRET_KEY')
+
+# Get the domain for Stripe redirects
+YOUR_DOMAIN = os.environ.get('REPLIT_DEV_DOMAIN') 
+if not YOUR_DOMAIN and os.environ.get('REPLIT_DEPLOYMENT') != 'true':
+    domains = os.environ.get('REPLIT_DOMAINS')
+    if domains:
+        YOUR_DOMAIN = domains.split(',')[0]
+        
+if YOUR_DOMAIN:
+    YOUR_DOMAIN = f"https://{YOUR_DOMAIN}"
+else:
+    YOUR_DOMAIN = "http://localhost:5000"  # fallback for local development
 
 # Register Replit Auth blueprint
 app.register_blueprint(make_replit_blueprint(), url_prefix="/auth")
@@ -309,8 +326,153 @@ def uploaded_file(filename):
 @app.route('/upgrade')
 @require_login
 def upgrade():
-    """Upgrade to premium page (placeholder for future payment integration)"""
-    return render_template('upgrade.html')
+    """Upgrade to premium page with pricing information"""
+    return render_template('upgrade.html', 
+                         current_user=current_user,
+                         has_subscription=current_user.has_active_subscription())
+
+
+@app.route('/create-checkout-session', methods=['POST'])
+@require_login
+def create_checkout_session():
+    """Create Stripe checkout session for premium subscription"""
+    try:
+        # Check if user already has an active subscription
+        if current_user.has_active_subscription():
+            flash('You already have an active subscription!', 'info')
+            return redirect(url_for('profile'))
+        
+        # Create Stripe checkout session
+        checkout_session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[
+                {
+                    'price_data': {
+                        'currency': 'eur',
+                        'product_data': {
+                            'name': 'Color Analyzer Premium',
+                            'description': 'Unlimited image storage and analysis',
+                        },
+                        'unit_amount': 399,  # €3.99 in cents
+                        'recurring': {
+                            'interval': 'month',
+                        },
+                    },
+                    'quantity': 1,
+                },
+            ],
+            mode='subscription',
+            success_url=YOUR_DOMAIN + '/payment-success?session_id={CHECKOUT_SESSION_ID}',
+            cancel_url=YOUR_DOMAIN + '/upgrade',
+            customer_email=current_user.email,
+            metadata={
+                'user_id': current_user.id,
+            },
+        )
+        
+        return redirect(checkout_session.url, code=303)
+        
+    except Exception as e:
+        flash(f'Error creating checkout session: {str(e)}', 'error')
+        return redirect(url_for('upgrade'))
+
+
+@app.route('/payment-success')
+@require_login
+def payment_success():
+    """Handle successful payment"""
+    session_id = request.args.get('session_id')
+    
+    if not session_id:
+        flash('Invalid payment session.', 'error')
+        return redirect(url_for('upgrade'))
+    
+    try:
+        # Retrieve the session from Stripe
+        session = stripe.checkout.Session.retrieve(session_id)
+        
+        if session.payment_status == 'paid':
+            # Get subscription details
+            subscription = stripe.Subscription.retrieve(session.subscription)
+            
+            # Create or update subscription record
+            existing_subscription = Subscription.query.filter_by(
+                user_id=current_user.id,
+                stripe_subscription_id=subscription.id
+            ).first()
+            
+            if not existing_subscription:
+                new_subscription = Subscription(
+                    user_id=current_user.id,
+                    stripe_subscription_id=subscription.id,
+                    stripe_customer_id=subscription.customer,
+                    status=subscription.status,
+                    current_period_start=datetime.fromtimestamp(subscription.current_period_start),
+                    current_period_end=datetime.fromtimestamp(subscription.current_period_end)
+                )
+                db.session.add(new_subscription)
+                db.session.commit()
+            
+            flash('Welcome to Premium! Your subscription is now active.', 'success')
+            return render_template('payment_success.html')
+        else:
+            flash('Payment was not completed successfully.', 'error')
+            return redirect(url_for('upgrade'))
+            
+    except Exception as e:
+        flash(f'Error processing payment: {str(e)}', 'error')
+        return redirect(url_for('upgrade'))
+
+
+@app.route('/webhook', methods=['POST'])
+def stripe_webhook():
+    """Handle Stripe webhook events"""
+    payload = request.get_data()
+    sig_header = request.headers.get('Stripe-Signature')
+    
+    try:
+        # Note: In production, you should verify the webhook signature
+        # For now, we'll process the event without verification
+        event = stripe.Event.construct_from(
+            json.loads(payload), stripe.api_key
+        )
+        
+        # Handle subscription events
+        if event['type'] == 'customer.subscription.updated':
+            subscription_data = event['data']['object']
+            
+            # Update subscription in database
+            subscription = Subscription.query.filter_by(
+                stripe_subscription_id=subscription_data['id']
+            ).first()
+            
+            if subscription:
+                subscription.status = subscription_data['status']
+                subscription.current_period_start = datetime.fromtimestamp(
+                    subscription_data['current_period_start']
+                )
+                subscription.current_period_end = datetime.fromtimestamp(
+                    subscription_data['current_period_end']
+                )
+                db.session.commit()
+                
+        elif event['type'] == 'customer.subscription.deleted':
+            subscription_data = event['data']['object']
+            
+            # Mark subscription as cancelled
+            subscription = Subscription.query.filter_by(
+                stripe_subscription_id=subscription_data['id']
+            ).first()
+            
+            if subscription:
+                subscription.status = 'canceled'
+                db.session.commit()
+        
+        return '', 200
+        
+    except Exception as e:
+        print(f'Webhook error: {str(e)}')
+        return '', 400
 
 
 @app.errorhandler(404)

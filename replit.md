@@ -121,6 +121,12 @@ Changelog:
   * Fixed dimension storage to properly handle rotated image dimensions
   * Corrected coordinate transformation formula for EXIF-rotated images
   * Pixel color analysis now works correctly in all areas of portrait images
+- July 05, 2025. Implemented Stripe payment processing for premium subscriptions:
+  * Added Subscription model to track user subscriptions
+  * Integrated Stripe checkout sessions for €3.99/month premium plans
+  * Created upgrade page with free (€0) vs premium (€3.99/month) pricing display
+  * Updated user premium status to check active subscriptions
+  * Added payment success page and webhook handling for subscription updates
 ```
 
 ## User Preferences

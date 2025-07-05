@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Upgrade to Premium - Color Analyzer{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <h2 class="display-4 text-white mb-3">Choose Your Plan</h2>
+                <p class="lead text-muted">Unlock the full potential of Color Analyzer</p>
+            </div>
+            
+            <div class="row">
+                <!-- Free Plan -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 {% if not has_subscription %}border-primary{% endif %}">
+                        <div class="card-body d-flex flex-column">
+                            <div class="text-center">
+                                <h3 class="card-title text-primary">Free</h3>
+                                <h2 class="display-3">€0</h2>
+                                <p class="text-muted">per month</p>
+                            </div>
+                            
+                            <ul class="list-unstyled mt-3 mb-4">
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    <strong>3 images</strong> storage limit
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    <strong>24 hours</strong> image retention
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    Full color analysis features
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    RGB, HSL, and hex values
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    Color temperature detection
+                                </li>
+                            </ul>
+                            
+                            <div class="mt-auto">
+                                {% if not has_subscription %}
+                                    <button class="btn btn-outline-primary btn-lg w-100" disabled>
+                                        Current Plan
+                                    </button>
+                                {% else %}
+                                    <button class="btn btn-outline-secondary btn-lg w-100" disabled>
+                                        Previous Plan
+                                    </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Premium Plan -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 {% if has_subscription %}border-success{% else %}border-warning{% endif %}">
+                        <div class="card-body d-flex flex-column">
+                            <div class="text-center">
+                                <h3 class="card-title text-warning">Premium</h3>
+                                <h2 class="display-3">€3.99</h2>
+                                <p class="text-muted">per month</p>
+                                {% if has_subscription %}
+                                    <span class="badge bg-success">Active</span>
+                                {% else %}
+                                    <span class="badge bg-warning">Most Popular</span>
+                                {% endif %}
+                            </div>
+                            
+                            <ul class="list-unstyled mt-3 mb-4">
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    <strong>50 images</strong> storage limit
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    <strong>Unlimited</strong> image retention
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    All free features included
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    Priority support
+                                </li>
+                                <li class="mb-2">
+                                    <i class="text-success" data-feather="check"></i>
+                                    Future premium features
+                                </li>
+                            </ul>
+                            
+                            <div class="mt-auto">
+                                {% if has_subscription %}
+                                    <button class="btn btn-success btn-lg w-100" disabled>
+                                        <i data-feather="check-circle"></i>
+                                        Active Subscription
+                                    </button>
+                                {% else %}
+                                    <form method="POST" action="{{ url_for('create_checkout_session') }}">
+                                        <button type="submit" class="btn btn-warning btn-lg w-100">
+                                            <i data-feather="credit-card"></i>
+                                            Subscribe Now
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="text-center">
+                        <h4 class="text-white mb-3">Frequently Asked Questions</h4>
+                        <div class="accordion" id="faqAccordion">
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq1">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1-content">
+                                        How does billing work?
+                                    </button>
+                                </h2>
+                                <div id="faq1-content" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        You'll be charged €3.99 monthly for premium access. You can cancel anytime and retain access until the end of your billing period.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq2">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2-content">
+                                        What happens to my images if I cancel?
+                                    </button>
+                                </h2>
+                                <div id="faq2-content" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Your images will remain accessible until the end of your billing period. After that, you'll be limited to 3 images with 24-hour retention.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="faq3">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3-content">
+                                        Can I upgrade or downgrade anytime?
+                                    </button>
+                                </h2>
+                                <div id="faq3-content" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                                    <div class="accordion-body">
+                                        Yes! You can upgrade to premium anytime or cancel your subscription. Changes take effect immediately or at the next billing cycle.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -35,12 +35,25 @@ class User(UserMixin, db.Model):
     @property
     def max_images(self):
         """Get maximum number of images user can have"""
-        return 50 if self.is_premium else 3
+        return 50 if self.has_active_subscription() else 3
+    
+    def has_active_subscription(self):
+        """Check if user has an active subscription"""
+        # Check for active subscription first
+        active_subscription = db.session.query(Subscription).filter_by(
+            user_id=self.id,
+            status='active'
+        ).filter(
+            Subscription.current_period_end >= datetime.utcnow()
+        ).first()
+        
+        # Return True if subscription is active OR if is_premium is manually set
+        return active_subscription is not None or self.is_premium
     
     @property
     def image_count(self):
         """Get current number of images user has"""
-        return len(self.images)
+        return db.session.query(Image).filter_by(user_id=self.id).count()
     
     def can_upload_image(self):
         """Check if user can upload another image"""
@@ -82,7 +95,8 @@ class Image(db.Model):
     @property
     def expires_at(self):
         """Get expiration time for free users"""
-        if self.user.is_premium:
+        user = db.session.query(User).filter_by(id=self.user_id).first()
+        if user and user.has_active_subscription():
             return None
         from datetime import timedelta
         return self.created_at + timedelta(hours=24)
@@ -90,6 +104,29 @@ class Image(db.Model):
     @property
     def is_expired(self):
         """Check if image is expired"""
-        if self.user.is_premium:
+        user = db.session.query(User).filter_by(id=self.user_id).first()
+        if user and user.has_active_subscription():
             return False
         return self.expires_at and datetime.utcnow() > self.expires_at
+
+
+class Subscription(db.Model):
+    __tablename__ = 'subscriptions'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.String, db.ForeignKey('users.id'), nullable=False)
+    stripe_subscription_id = db.Column(db.String, nullable=False, unique=True)
+    stripe_customer_id = db.Column(db.String, nullable=False)
+    status = db.Column(db.String, nullable=False)  # active, canceled, past_due, etc.
+    current_period_start = db.Column(db.DateTime, nullable=False)
+    current_period_end = db.Column(db.DateTime, nullable=False)
+    
+    # Timestamps
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    user = db.relationship('User', backref='subscriptions')
+    
+    def is_active(self):
+        """Check if subscription is currently active"""
+        return self.status == 'active' and datetime.utcnow() <= self.current_period_end
