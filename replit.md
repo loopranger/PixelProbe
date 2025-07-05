@@ -84,7 +84,7 @@ Color Analyzer is a Flask-based web application that allows users to upload imag
 - Stripe API integration for subscription management
 - Stripe-hosted checkout pages for secure payment processing
 - Webhook handling for subscription lifecycle events
-- Monthly recurring billing at $9.99/month
+- Monthly recurring billing at €3.99/month
 
 ## Deployment Strategy
 
@@ -130,7 +130,7 @@ Changelog:
   * Corrected coordinate transformation formula for EXIF-rotated images
   * Pixel color analysis now works correctly in all areas of portrait images
 - July 05, 2025. Implemented Stripe payment processing for Premium subscriptions:
-  * Added Stripe integration with recurring $9.99/month subscriptions
+  * Added Stripe integration with recurring €3.99/month subscriptions
   * Created payment routes for checkout, success, cancellation, and webhooks
   * Updated user model with subscription tracking fields
   * Added subscription management in user profile (view status, cancel subscription)
